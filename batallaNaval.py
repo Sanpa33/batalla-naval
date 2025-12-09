@@ -71,6 +71,7 @@ def cantidadDeBarcosDeTamaño(barcos: list[BarcoEnGrilla], tamaño: int) -> int:
 
     return cantidadDeBarcosPorAhora
 
+# print(cantidadDeBarcosDeTamaño([[('H',3),('H',4),('H',5)],[('F',4),('E',4)],[('B',4),('B',3),('B',2)]],2))
 
 ## EJERCICIO 2
 
@@ -91,11 +92,11 @@ def grillaVacía(cantidadDeFilas: int, cantidadDeColumnas: int) -> Grilla:
 
     for i in range (cantidadDeFilas):
 
-        largoDeGrillaPorAhora: list[Celda] = [VACÍO] * cantidadDeColumnas
-        grillaPorAhora.append(largoDeGrillaPorAhora)
+        grillaPorAhora.append([VACÍO] * cantidadDeColumnas)
     
     return grillaPorAhora
 
+# print(grillaVacía(5,5))
 
 def tableroInicial(cantidadDeFilas: int, cantidadDeColumnas: int) -> Tablero:
 
@@ -149,6 +150,31 @@ def dimension_valida(dimension_tablero: tuple[int, int]) -> bool:
     return (0 < dimension_tablero[0] <= 26)  and (dimension_tablero[1] > 0)
 
 
+
+def es_matriz_valida(matriz: Grilla) -> bool:
+    """
+    Verifica si la estructura de la matriz es rectangular o si está vacía.
+    
+    Asegura:
+      resultado = True <==> (|matriz| = 0) OR (para toda fila: |fila| = |matriz[0]|)
+    """
+    
+    # 1. Caso base de la especificación: |matriz| = 0
+    if len(matriz) == 0:
+        return True
+
+    # 2. Caso recursivo/iterativo: Comparar contra |matriz[0]|
+    # Guardamos la longitud de referencia (la primera fila)
+    longitud_referencia = len(matriz[0])
+
+    for fila in matriz:
+        # Si alguna fila tiene un largo distinto, ya no es válida
+        if len(fila) != longitud_referencia:
+            return False
+
+    # Si terminamos el bucle sin encontrar diferencias, es válida
+    return True
+
 def grilla_valida_en_juego(grilla: Grilla, dimension: tuple[int, int]) -> bool:
 
     """
@@ -163,59 +189,51 @@ def grilla_valida_en_juego(grilla: Grilla, dimension: tuple[int, int]) -> bool:
         bool: True si las dimensiones de la grilla coinciden con las dimensiones esperadas, False en caso contrario.
     """
 
-    altoDeGrillaPorAhora: int = 0
+    if not es_matriz_valida(grilla):
+        return False   
 
-    largoDeGrillaPorAhora: int = 0
+    if len(grilla) == 0:
+         # Si está vacía, sus dimensiones son (0, 0)
+         # Ojo que es importante este caso, sino cuando se haga mas abajo esto ancho_real = len(grilla[0])  # Python intenta buscar el elemento 0 de una lista vacía.
+         return dimension == (0, 0)
+
+    altoDeGrilla: int = len(grilla)
+
+    largoDeGrilla: int = len(grilla[0])
+
+    return dimension == (altoDeGrilla, largoDeGrilla)
 
 
-    for i in range(len(grilla)):
 
-        altoDeGrillaPorAhora += 1
-
-    for i in range(len(grilla[0])):
-
-        largoDeGrillaPorAhora += 1
-
-    return (altoDeGrillaPorAhora, largoDeGrillaPorAhora) == dimension
-
-
-def indice_del_minimo(lista:list[int], inicio:int) -> int:
+def indice_del_minimo_entre(lista: list[int], inicio: int) -> int:
+    """
+    Busca el índice del elemento más pequeño de la lista en el rango [inicio, final].
     
+    Esta es la subtarea que encapsula la "alternativa anidada".
     """
-    Busca el indice del numero más chico de la lista
+    # Corrección: Nombre descriptivo para la variable interna
+    indice_del_minimo_por_ahora = inicio
 
-    PRE: True
-    Args: 
-        lista (list[int]): La lista de enteros a ordenar.
-        inicio (int): Desde qué posicion de la lista busca 
-    Returns: 
-        int: El indice del menor número de la lista
-   
-    """
-    indice_minimo = inicio
     for j in range(inicio + 1, len(lista)):
-        if lista[j] < lista[indice_minimo]:
-            indice_minimo = j
-    return indice_minimo
+        if lista[j] < lista[indice_del_minimo_por_ahora]:
+            indice_del_minimo_por_ahora = j
+            
+    return indice_del_minimo_por_ahora
 
 
-def intercambiar(lista:list[int], i:int, j:int) -> list[int]:
-    
+def intercambiar_dos_elementos(lista: list[int], i: int, j: int) -> None:
     """
-    Intercambia el orden de dos elementos de una lista, para ordenarlos de menor a mayor.
+    Intercambia los elementos que se encuentran en las posiciones i y j.
 
-    PRE: True
+    PRE: 0 <= i < len(lista) and 0 <= j < len(lista)
     Args: 
-        lista (list[int]): La lista de enteros a ordenar.
-        i (int) : Indice de uno de los elementos a ordenar
-        j (int) : Indice del otr elemento a ordenar
+        lista (list[int]): La lista donde se hará el cambio.
+        i (int) : Índice del primer elemento.
+        j (int) : Índice del segundo elemento.
     Returns: 
-        list[int]: Una nueva lista con los elementos ordenados.
-    
+        None: Modifica la lista in-situ (no devuelve nada).
     """
     lista[i], lista[j] = lista[j], lista[i]
-
-    return lista
 
 
 def listaOrdenada(lista:list[int]) -> list[int]:
@@ -230,14 +248,16 @@ def listaOrdenada(lista:list[int]) -> list[int]:
         list[int]: La nueva lista con los elementos ordenados
     """
 
+    # Trabajamos sobre una copia para no modificar la original
     lista_ordenada = lista.copy() 
     n = len(lista_ordenada)
 
     for i in range(n):
-
-        indice_minimo = indice_del_minimo(lista_ordenada, i)
+        # 1. Buscamos el mínimo en el resto de la lista (usando el nuevo nombre)
+        indice_minimo = indice_del_minimo_entre(lista_ordenada, i)
         
-        intercambiar(lista_ordenada, i, indice_minimo)
+        # 2. Intercambiamos el actual con el mínimo encontrado
+        intercambiar_dos_elementos(lista_ordenada, i, indice_minimo)
         
     return lista_ordenada
 
