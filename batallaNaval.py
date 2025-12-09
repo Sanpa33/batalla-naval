@@ -38,11 +38,17 @@ def tamañoDelBarco(barco: BarcoEnGrilla) -> Barco:
 
     tamañoPorAhora: int = 0
 
-    for posicion in barco:
+    for posicionActual in barco:
         tamañoPorAhora += 1
             
     return tamañoPorAhora
 
+
+def unoSiCeroSiNo(condicion: bool) -> int:
+    if condicion == True:
+        return 1
+    else:
+        return 0
 
 def cantidadDeBarcosDeTamaño(barcos: list[BarcoEnGrilla], tamaño: int) -> int:
     
@@ -57,14 +63,11 @@ def cantidadDeBarcosDeTamaño(barcos: list[BarcoEnGrilla], tamaño: int) -> int:
         int: La cantidad de barcos que tienen el tamaño deseado.
     """
 
-    tamaños: list[int] = tamaños_barcos_en_grilla(barcos)
-
     cantidadDeBarcosPorAhora:int = 0
 
-    for tamaño_barco in tamaños:
+    for barcoActual in barcos:
 
-        if tamaño_barco == tamaño:
-            cantidadDeBarcosPorAhora += 1
+        cantidadDeBarcosPorAhora += unoSiCeroSiNo(tamañoDelBarco(barcoActual) == tamaño)
 
     return cantidadDeBarcosPorAhora
 
